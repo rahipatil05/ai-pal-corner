@@ -174,34 +174,40 @@ Remember to:
       console.error('Error saving user message:', saveUserMsgError);
     }
 
-    // Call Lovable AI
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    // Call Ollama API
+    const OLLAMA_URL = Deno.env.get('OLLAMA_URL') || 'http://localhost:11434';
+    const OLLAMA_MODEL = Deno.env.get('OLLAMA_MODEL') || 'llama2';
     
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Build full prompt for Ollama (it doesn't use chat format by default)
+    let fullPrompt = `${enhancedSystemPrompt}\n\n`;
+    conversationHistory.forEach(msg => {
+      fullPrompt += `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}\n`;
+    });
+    fullPrompt += `User: ${message}\nAssistant:`;
+    
+    const aiResponse = await fetch(`${OLLAMA_URL}/api/generate`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: enhancedSystemPrompt },
-          ...conversationHistory,
-          { role: 'user', content: message }
-        ],
-        temperature: 0.8,
+        model: OLLAMA_MODEL,
+        prompt: fullPrompt,
+        stream: false,
+        options: {
+          temperature: 0.8,
+        }
       }),
     });
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error('AI API error:', aiResponse.status, errorText);
-      throw new Error(`AI API error: ${aiResponse.status}`);
+      console.error('Ollama API error:', aiResponse.status, errorText);
+      throw new Error(`Ollama API error: ${aiResponse.status}`);
     }
 
     const aiData = await aiResponse.json();
-    const aiMessage = aiData.choices[0].message.content;
+    const aiMessage = aiData.response;
 
     // Save AI response to database
     const { error: saveAiMsgError } = await supabase
