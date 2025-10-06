@@ -7,11 +7,25 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const Profile = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [clearingData, setClearingData] = useState(false);
+  const [verifyPassword, setVerifyPassword] = useState('');
+  const [showClearDialog, setShowClearDialog] = useState(false);
   const [profile, setProfile] = useState({
     name: '',
     email: '',
@@ -82,6 +96,62 @@ const Profile = () => {
       toast.error(error.message || "Failed to update profile");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleClearData = async () => {
+    if (!verifyPassword) {
+      toast.error("Please enter your password");
+      return;
+    }
+
+    setClearingData(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !user.email) throw new Error('Not authenticated');
+
+      // Verify password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: verifyPassword,
+      });
+
+      if (signInError) throw new Error('Invalid password');
+
+      // Delete all conversations
+      await supabase
+        .from('conversations')
+        .delete()
+        .eq('user_id', user.id);
+
+      // Delete custom agents (not default ones)
+      await supabase
+        .from('agents')
+        .delete()
+        .eq('user_id', user.id);
+
+      // Reset profile data
+      await supabase
+        .from('profiles')
+        .update({
+          interests: [],
+          favorite_items: [],
+          date_of_birth: null,
+        })
+        .eq('id', user.id);
+
+      setVerifyPassword('');
+      setShowClearDialog(false);
+      toast.success("All data cleared successfully");
+      
+      // Reload profile
+      loadProfile();
+    } catch (error: any) {
+      console.error('Error clearing data:', error);
+      toast.error(error.message || "Failed to clear data");
+    } finally {
+      setClearingData(false);
     }
   };
 
@@ -195,6 +265,69 @@ const Profile = () => {
                 )}
               </Button>
             </form>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50 shadow-card backdrop-blur-sm bg-card/95 border-destructive/50">
+          <CardHeader>
+            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+            <CardDescription>
+              Permanently delete all your data
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Clear All Data
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Clear all your data?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete:
+                    <ul className="list-disc list-inside mt-2 space-y-1">
+                      <li>All chat conversations</li>
+                      <li>All custom agents you created</li>
+                      <li>Your interests and preferences</li>
+                    </ul>
+                    <p className="mt-4 font-semibold">This action cannot be undone.</p>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="verify-password">Enter your password to confirm</Label>
+                  <Input
+                    id="verify-password"
+                    type="password"
+                    value={verifyPassword}
+                    onChange={(e) => setVerifyPassword(e.target.value)}
+                    placeholder="Your password"
+                    disabled={clearingData}
+                  />
+                </div>
+
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setVerifyPassword('')}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleClearData}
+                    disabled={clearingData || !verifyPassword}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {clearingData ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Clearing...
+                      </>
+                    ) : (
+                      "Clear All Data"
+                    )}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </CardContent>
         </Card>
       </div>

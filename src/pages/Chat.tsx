@@ -7,9 +7,20 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Loader2, Send, Sparkles, User, LogOut, Settings, Plus } from "lucide-react";
+import { Loader2, Send, Sparkles, User, LogOut, Settings, Plus, Trash2 } from "lucide-react";
 import AgentSelector from "@/components/AgentSelector";
 import ChatMessage from "@/components/ChatMessage";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Message {
   id: string;
@@ -173,6 +184,26 @@ const Chat = () => {
     }
   };
 
+  const clearChats = async () => {
+    if (!selectedAgent || !user) return;
+
+    try {
+      const { error } = await supabase
+        .from('conversations')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('agent_id', selectedAgent.id);
+
+      if (error) throw error;
+
+      setMessages([]);
+      toast.success("Chat history cleared successfully");
+    } catch (error: any) {
+      console.error('Error clearing chats:', error);
+      toast.error(error.message || "Failed to clear chat history");
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gradient-hero">
       {/* Sidebar */}
@@ -229,16 +260,40 @@ const Chat = () => {
         {/* Chat Header */}
         {selectedAgent && (
           <div className="p-6 border-b border-border/50 bg-card/95 backdrop-blur-sm">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-12 w-12 border-2 border-primary">
-                <AvatarFallback className="bg-gradient-primary text-primary-foreground">
-                  {selectedAgent.name[0]}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h2 className="text-xl font-semibold">{selectedAgent.name}</h2>
-                <p className="text-sm text-muted-foreground">{selectedAgent.description}</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-12 w-12 border-2 border-primary">
+                  <AvatarFallback className="bg-gradient-primary text-primary-foreground">
+                    {selectedAgent.name[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h2 className="text-xl font-semibold">{selectedAgent.name}</h2>
+                  <p className="text-sm text-muted-foreground">{selectedAgent.description}</p>
+                </div>
               </div>
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Clear chat history?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete all messages with {selectedAgent.name}. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={clearChats} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Clear Chat
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         )}
