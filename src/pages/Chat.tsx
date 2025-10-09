@@ -204,6 +204,40 @@ const Chat = () => {
     }
   };
 
+  const deleteAgent = async (agentId: string) => {
+    try {
+      // Delete all conversations with this agent
+      const { error: convError } = await supabase
+        .from('conversations')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('agent_id', agentId);
+
+      if (convError) throw convError;
+
+      // Delete the agent
+      const { error: agentError } = await supabase
+        .from('agents')
+        .delete()
+        .eq('id', agentId)
+        .eq('user_id', user.id);
+
+      if (agentError) throw agentError;
+
+      // Update UI
+      setAgents(prev => prev.filter(a => a.id !== agentId));
+      if (selectedAgent?.id === agentId) {
+        const remainingAgents = agents.filter(a => a.id !== agentId);
+        setSelectedAgent(remainingAgents[0] || null);
+      }
+
+      toast.success("Agent deleted successfully");
+    } catch (error: any) {
+      console.error('Error deleting agent:', error);
+      toast.error(error.message || "Failed to delete agent");
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gradient-hero">
       {/* Sidebar */}
@@ -220,6 +254,7 @@ const Chat = () => {
             agents={agents}
             selectedAgent={selectedAgent}
             onSelectAgent={setSelectedAgent}
+            onDeleteAgent={deleteAgent}
           />
         </div>
 
