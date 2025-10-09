@@ -174,54 +174,46 @@ Remember to:
       console.error('Error saving user message:', saveUserMsgError);
     }
 
-    // Call Google AI API (Gemini)
-    const GOOGLE_AI_API_KEY = Deno.env.get('GOOGLE_AI_API_KEY');
-    
-    if (!GOOGLE_AI_API_KEY) {
-      throw new Error('GOOGLE_AI_API_KEY not configured');
+    // Call Lovable AI Gateway (Gemini)
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Build conversation for Gemini format
-    const contents = [
-      {
-        role: 'user',
-        parts: [{ text: enhancedSystemPrompt }]
-      },
-      ...conversationHistory.map(msg => ({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: msg.content }]
-      })),
-      {
-        role: 'user',
-        parts: [{ text: message }]
-      }
+    // Build OpenAI-compatible chat messages
+    const messages = [
+      { role: 'system', content: enhancedSystemPrompt },
+      ...conversationHistory.map(m => ({ role: m.role, content: m.content })),
+      { role: 'user', content: message },
     ];
-    
-    const aiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents,
-          generationConfig: {
-            temperature: 0.8,
-            maxOutputTokens: 1000,
-          },
-        }),
-      }
-    );
+
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages,
+        stream: false,
+      }),
+    });
 
     if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('Google AI API error:', aiResponse.status, errorText);
-      throw new Error(`Google AI API error: ${aiResponse.status}`);
+      if (aiResponse.status === 429) {
+        throw new Error('Rate limits exceeded, please try again later.');
+      }
+      if (aiResponse.status === 402) {
+        throw new Error('Payment required, please add credits to your Lovable AI workspace.');
+      }
+      const t = await aiResponse.text();
+      console.error('AI gateway error:', aiResponse.status, t);
+      throw new Error('AI gateway error');
     }
 
     const aiData = await aiResponse.json();
-    const aiMessage = aiData.candidates[0].content.parts[0].text;
+    const aiMessage = aiData.choices?.[0]?.message?.content ?? '';
 
     // Save AI response to database
     const { error: saveAiMsgError } = await supabase
