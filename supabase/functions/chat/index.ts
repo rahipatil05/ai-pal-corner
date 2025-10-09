@@ -183,10 +183,6 @@ Remember to:
 
     // Build conversation for Gemini format
     const contents = [
-      {
-        role: 'user',
-        parts: [{ text: enhancedSystemPrompt }]
-      },
       ...conversationHistory.map(msg => ({
         role: msg.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: msg.content }]
@@ -206,6 +202,9 @@ Remember to:
         },
         body: JSON.stringify({
           contents,
+          systemInstruction: {
+            parts: [{ text: enhancedSystemPrompt }]
+          },
           generationConfig: {
             temperature: 0.8,
             maxOutputTokens: 1000,
