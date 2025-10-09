@@ -202,7 +202,7 @@ Remember to:
         },
         body: JSON.stringify({
           contents,
-          systemInstruction: {
+          system_instruction: {
             parts: [{ text: enhancedSystemPrompt }]
           },
           generationConfig: {
