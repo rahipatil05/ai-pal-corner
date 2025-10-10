@@ -15,6 +15,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [gender, setGender] = useState<"male" | "female">("male");
 
   useEffect(() => {
     // Check if user is already logged in
@@ -54,6 +55,7 @@ const Auth = () => {
             emailRedirectTo: `${window.location.origin}/chat`,
             data: {
               name: name,
+              gender: gender,
             },
           },
         });
@@ -96,18 +98,50 @@ const Auth = () => {
           <CardContent>
             <form onSubmit={handleAuth} className="space-y-4">
               {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    placeholder="Your name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    disabled={loading}
-                  />
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Name</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      placeholder="Your name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      disabled={loading}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">Gender</Label>
+                    <div className="flex gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="gender"
+                          value="male"
+                          checked={gender === "male"}
+                          onChange={(e) => setGender(e.target.value as "male" | "female")}
+                          disabled={loading}
+                          className="w-4 h-4 text-primary"
+                        />
+                        <span>Male</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="gender"
+                          value="female"
+                          checked={gender === "female"}
+                          onChange={(e) => setGender(e.target.value as "male" | "female")}
+                          disabled={loading}
+                          className="w-4 h-4 text-primary"
+                        />
+                        <span>Female</span>
+                      </label>
+                    </div>
+                  </div>
+                </>
               )}
               
               <div className="space-y-2">
