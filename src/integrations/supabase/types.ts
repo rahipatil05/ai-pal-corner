@@ -88,6 +88,7 @@ export type Database = {
           date_of_birth: string | null
           email: string
           favorite_items: string[] | null
+          gender: string | null
           id: string
           interests: string[] | null
           name: string
@@ -99,6 +100,7 @@ export type Database = {
           date_of_birth?: string | null
           email: string
           favorite_items?: string[] | null
+          gender?: string | null
           id: string
           interests?: string[] | null
           name: string
@@ -110,6 +112,7 @@ export type Database = {
           date_of_birth?: string | null
           email?: string
           favorite_items?: string[] | null
+          gender?: string | null
           id?: string
           interests?: string[] | null
           name?: string
@@ -117,6 +120,39 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      user_companion_agents: {
+        Row: {
+          agent_id: string
+          created_at: string | null
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string | null
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_companion_agents_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_companion_agents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
