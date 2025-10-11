@@ -8,53 +8,57 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: 207 60% 11%;
+    --foreground: 0 0% 100%;
 
-    --card: 240 10% 7%;
-    --card-foreground: 0 0% 98%;
+    --card: 207 60% 14%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 240 10% 7%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 207 60% 14%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 263 70% 50%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 186 100% 50%;
+    --primary-foreground: 207 60% 11%;
 
-    --secondary: 217 91% 60%;
+    --secondary: 260 100% 71%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 240 5% 26%;
-    --muted-foreground: 240 5% 65%;
+    --muted: 207 30% 25%;
+    --muted-foreground: 210 15% 70%;
 
-    --accent: 280 80% 60%;
+    --accent: 189 100% 42%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 10% 18%;
-    --input: 240 10% 18%;
-    --ring: 263 70% 50%;
+    --border: 0 0% 100% / 0.1;
+    --input: 207 60% 18%;
+    --ring: 186 100% 50%;
 
     --radius: 1rem;
 
     /* Mood colors */
-    --mood-happy: 142 76% 36%;
-    --mood-sad: 217 91% 60%;
+    --mood-happy: 142 76% 50%;
+    --mood-sad: 204 70% 55%;
     --mood-stressed: 38 92% 50%;
-    --mood-neutral: 240 5% 65%;
+    --mood-neutral: 210 15% 70%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(263 70% 50%), hsl(280 80% 60%));
-    --gradient-secondary: linear-gradient(135deg, hsl(217 91% 60%), hsl(280 80% 60%));
-    --gradient-hero: linear-gradient(135deg, hsl(240 10% 3.9%), hsl(263 70% 20%));
+    /* Futuristic Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(186 100% 50%), hsl(260 100% 71%));
+    --gradient-secondary: linear-gradient(135deg, hsl(189 100% 42%), hsl(260 100% 71%));
+    --gradient-hero: linear-gradient(135deg, hsl(207 60% 11%), hsl(204 69% 22%), hsl(204 70% 38%));
+    --gradient-card: linear-gradient(145deg, hsl(207 60% 14% / 0.8), hsl(207 60% 18% / 0.6));
 
-    /* Shadows */
-    --shadow-glow: 0 0 30px hsl(263 70% 50% / 0.3);
-    --shadow-card: 0 10px 30px hsl(240 10% 3.9% / 0.5);
+    /* Neon Glows */
+    --shadow-glow: 0 0 20px hsl(186 100% 50% / 0.5);
+    --shadow-glow-strong: 0 0 30px hsl(186 100% 50% / 0.7), 0 0 50px hsl(186 100% 50% / 0.4);
+    --shadow-glow-secondary: 0 0 20px hsl(260 100% 71% / 0.5);
+    --shadow-card: 0 8px 32px hsl(207 60% 11% / 0.6);
 
     /* Animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-glow: box-shadow 0.3s ease, transform 0.3s ease;
   }
 }
 
@@ -64,6 +68,27 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background: linear-gradient(135deg, hsl(207 60% 11%), hsl(204 69% 22%), hsl(204 70% 38%));
+    background-attachment: fixed;
+  }
+}
+
+@layer utilities {
+  .glow-text {
+    text-shadow: 0 0 10px hsl(186 100% 50% / 0.5);
+  }
+  
+  .glow-border {
+    border: 1px solid hsl(186 100% 50% / 0.3);
+    box-shadow: 0 0 12px hsl(186 100% 50% / 0.3);
+  }
+  
+  .neon-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .neon-glow-strong {
+    box-shadow: var(--shadow-glow-strong);
   }
 }
