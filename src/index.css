@@ -91,4 +91,35 @@ All colors MUST be HSL.
   .neon-glow-strong {
     box-shadow: var(--shadow-glow-strong);
   }
+
+  .mouse-glow {
+    position: relative;
+    --mouse-x: 50%;
+    --mouse-y: 50%;
+  }
+
+  .mouse-glow::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      600px circle at var(--mouse-x) var(--mouse-y),
+      hsl(186 100% 50% / 0.15),
+      transparent 40%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .mouse-glow:hover::before {
+    opacity: 1;
+  }
+
+  .mouse-glow > * {
+    position: relative;
+    z-index: 2;
+  }
 }

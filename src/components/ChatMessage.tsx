@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { User, Bot } from "lucide-react";
+import { useMouseGlow } from "@/hooks/use-mouse-glow";
 
 interface Message {
   id: string;
@@ -32,6 +33,7 @@ const moodColors: Record<string, string> = {
 
 const ChatMessage = ({ message, agentName }: ChatMessageProps) => {
   const isUser = message.role === 'user';
+  const glowRef = useMouseGlow<HTMLDivElement>();
   
   return (
     <div className={cn("flex gap-3", isUser ? "flex-row-reverse" : "flex-row")}>
@@ -47,8 +49,8 @@ const ChatMessage = ({ message, agentName }: ChatMessageProps) => {
         </AvatarFallback>
       </Avatar>
 
-      <Card className={cn(
-        "max-w-[70%] p-4 border-l-4",
+      <Card ref={glowRef as any} className={cn(
+        "max-w-[70%] p-4 border-l-4 mouse-glow",
         isUser ? "bg-card/80" : "bg-card/95",
         message.mood ? moodColors[message.mood] : "border-l-border"
       )}>
